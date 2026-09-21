@@ -1,0 +1,46 @@
+version: "3.9"
+
+# Archon End-to-End Test Environment
+# Run from this directory: docker compose up --build
+
+services:
+
+  # ── PostgreSQL (application database to back up) ───────────────────────────
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpass
+      POSTGRES_DB: testdb
+      TZ: Asia/Kolkata
+      PGTZ: Asia/Kolkata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql   # seeds tables on first start
+    ports:
+      - "5432:5432"    # exposed so you can connect with psql from host
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser -d testdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ── Archon ─────────────────────────────────────────────────────────────────
+  archon:
+    build:
+      context: ..           # Dockerfile is in the project root
+      dockerfile: Dockerfile
+    volumes:
+      - ./config.yaml:/app/config.yaml    # our test config
+      - ./backups:/app/backups            # backups land here on the host
+    ports:
+      - "8765:8765"
+    environment:
+      CONFIG_PATH: /app/config.yaml
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

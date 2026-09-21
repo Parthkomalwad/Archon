@@ -1,0 +1,58 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+.env
+*.env
+
+# Pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Secrets & config overrides
+config.yaml
+archon.config.yaml
+*.secret
+secrets/
+
+# Backups (runtime output)
+backups/
+testing/backups/
+
+# Node / UI
+ui/node_modules/
+ui/dist/
+ui/.env
+ui/.env.local
+
+# Docker
+testing/postgres-data/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Claude Code
+.claude/
+CLAUDE.md
+
+# Logs
+*.log

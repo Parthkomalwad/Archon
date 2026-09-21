@@ -1,0 +1,114 @@
+# Archon Configuration File
+# Copy to archon.config.yaml in your project root.
+# All ${VAR} references are resolved from your .env / environment variables at startup.
+# Missing variables cause an immediate startup failure with a clear error message.
+
+databases:
+  # ── PostgreSQL ─────────────────────────────────────────────────────────────
+  - name: primary_postgres          # unique identifier used in filenames and API responses
+    type: postgres                  # postgres | mongodb | sqlite | mysql
+    host: postgres                  # Docker service name or IP
+    port: 5432
+    db: mydb
+    user: ${DB_USER}               # env var interpolation  never put secrets directly here
+    password: ${DB_PASSWORD}
+    schedule:
+      frequency: daily              # daily | weekly | monthly | hourly
+      at: "14:00"                   # 24-hour time (required for daily/weekly/monthly)
+      timezone: "Asia/Kolkata"      # IANA timezone string
+    storage: s3                     # references the key under `storage:` below
+    retention:                      # OPTIONAL  overrides global retention for this database only
+      daily: 14                     # keep last 14 daily backups instead of global 7
+      weekly: 8                     # keep last 8 weekly backups instead of global 4
+      # monthly not set  falls back to global monthly: 12
+
+  # ── MongoDB ────────────────────────────────────────────────────────────────
+  - name: analytics_mongo
+    type: mongodb
+    host: mongo
+    port: 27017
+    db: analytics
+    user: ${MONGO_USER}
+    password: ${MONGO_PASSWORD}
+    authdb: admin                   # OPTIONAL  authentication database, defaults to 'admin'
+    schedule:
+      frequency: weekly
+      on: sunday                    # day name for weekly frequency (monday–sunday)
+      at: "03:00"
+      timezone: "UTC"
+    storage: local
+
+  # ── SQLite ─────────────────────────────────────────────────────────────────
+  - name: cache_sqlite
+    type: sqlite
+    path: /data/cache.db            # absolute path inside the container
+    schedule:
+      frequency: monthly
+      on: 1                         # day of month (integer 1–28; 29–31 excluded for short months)
+      at: "00:00"
+      timezone: "America/New_York"
+    storage: azure
+
+  # ── Hourly example ─────────────────────────────────────────────────────────
+  - name: metrics_hourly
+    type: postgres
+    host: postgres
+    port: 5432
+    db: metrics
+    user: ${DB_USER}
+    password: ${DB_PASSWORD}
+    schedule:
+      frequency: hourly             # no `at` field needed for hourly
+      timezone: "UTC"
+    storage: local
+    retention:
+      hourly: 48                    # keep last 48 hourly backups
+
+  # ── Raw cron (advanced) ────────────────────────────────────────────────────
+  # - name: high_frequency_job
+  #   type: postgres
+  #   host: postgres
+  #   port: 5432
+  #   db: mydb
+  #   user: ${DB_USER}
+  #   password: ${DB_PASSWORD}
+  #   schedule:
+  #     cron: "*/30 * * * *"        # raw cron expression  bypasses all schedule validation
+  #     timezone: "Asia/Kolkata"
+  #   storage: s3
+
+
+# Storage backends  defined once, referenced by name above.
+# Multiple databases can share a single backend.
+storage:
+  s3:
+    bucket: my-backups
+    region: ap-south-1
+    prefix: archon/                 # all files stored under this prefix in the bucket
+    access_key: ${AWS_ACCESS_KEY}
+    secret_key: ${AWS_SECRET_KEY}
+
+  local:
+    path: /app/backups              # directory inside the container (mount a volume here)
+
+  azure:
+    container: dbbackups            # Azure Blob Storage container name
+    connection_string: ${AZURE_STORAGE_CONN_STR}
+
+
+encryption:
+  enabled: true                     # set false to disable encryption (not recommended for production)
+  key: ${ENCRYPTION_KEY}            # base64-encoded 32-byte key  generate: openssl rand -base64 32
+
+
+# Global retention defaults  apply to all databases unless overridden per-database above.
+retention:
+  hourly: 24                        # keep last 24 hourly backups
+  daily: 7                          # keep last 7 daily backups
+  weekly: 4                         # keep last 4 weekly backups
+  monthly: 12                       # keep last 12 monthly backups
+
+
+api:
+  port: 8765
+  api_key: ${ARCHON_API_KEY}         # generate: openssl rand -hex 32

@@ -1,0 +1,33 @@
+# Archon – Nginx TLS override
+#
+# Use this compose override when exposing Archon outside a private network.
+# It adds an Nginx reverse-proxy that terminates TLS in front of the archon service.
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.nginx.yml up
+#
+# Prerequisites:
+#   1. Place your TLS certificate and key in ./nginx/certs/:
+#        ./nginx/certs/fullchain.pem
+#        ./nginx/certs/privkey.pem
+#      (Let's Encrypt, self-signed, or your CA  any PEM format works)
+#   2. Update server_name in nginx/nginx.conf to match your domain.
+#   3. Remove the `ports` mapping from the `archon` service in docker-compose.yml
+#      (port 8765 should NOT be exposed publicly when Nginx is in front).
+
+version: "3.9"
+
+services:
+
+  # ── Nginx TLS terminator ───────────────────────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/archon.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - archon
+    restart: unless-stopped

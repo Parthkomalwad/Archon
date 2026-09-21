@@ -1,0 +1,72 @@
+# Archon – example docker-compose.yml integration
+#
+# Copy the `archon` service block into your own docker-compose.yml.
+# Adjust the database `depends_on` entry to match your service name.
+#
+# Required files in your project root:
+#   - archon.config.yaml   (your Archon config  see config.yaml.example)
+#   - .env                 (add ARCHON_API_KEY and ENCRYPTION_KEY  see .env.example)
+
+version: "3.9"
+
+services:
+
+  # ── Your application (example) ────────────────────────────────────────────
+  app:
+    image: your-app:latest
+    env_file: .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ── Example PostgreSQL database ───────────────────────────────────────────
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: mydb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d mydb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Archon sidecar ─────────────────────────────────────────────────────────
+  archon:
+    image: archon:latest
+    volumes:
+      - ./archon.config.yaml:/app/config.yaml   # mount your config
+      - ./backups:/app/backups                   # local backup storage (omit if using S3/Azure only)
+    ports:
+      - "8765:8765"
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8765/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ── Archon UI dashboard ────────────────────────────────────────────────────
+  archon-ui:
+    build:
+      context: ./ui
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    environment:
+      VITE_API_KEY: ${ARCHON_API_KEY}
+    depends_on:
+      - archon
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
