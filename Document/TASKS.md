@@ -1,5 +1,5 @@
-# DBGuard – Build Task List & Checkpoint Reference
-**v2.0 | Reference: DBGuard-PRD.md v2.0**
+# Archon – Build Task List & Checkpoint Reference
+**v2.0 | Reference: Archon-PRD.md v2.0**
 
 ---
 
@@ -34,7 +34,7 @@
 ### 1.1 Project Structure
 - [ ] Create directory layout per PRD Section 15:
   ```
-  dbguard/app/providers/ dbguard/app/storage/ dbguard/app/api/ dbguard/tests/
+  archon/app/providers/ archon/app/storage/ archon/app/api/ archon/tests/
   ```
 - [ ] Create `requirements.txt` with all packages from PRD Section 16
 
@@ -204,7 +204,7 @@ Before moving to Phase 2, verify **all** of the following:
 ### ✅ Phase 3 Checkpoint
 
 - [ ] A file written to local storage can be read back, listed, and deleted
-- [ ] A file written to S3 appears in the bucket, can be downloaded, listed, and deleted via DBGuard
+- [ ] A file written to S3 appears in the bucket, can be downloaded, listed, and deleted via Archon
 - [ ] A file written to Azure Blob appears in the container, can be downloaded, listed, and deleted
 - [ ] `list()` for each backend returns only files matching the given prefix (no cross-database bleed)
 - [ ] `exists()` returns `True` for an existing file and `False` for a non-existent file on all backends
@@ -460,7 +460,7 @@ Before moving to Phase 2, verify **all** of the following:
 
 ### ✅ Phase 8 Checkpoint
 
-- [ ] `docker build -t dbguard:latest .` completes with no errors
+- [ ] `docker build -t archon:latest .` completes with no errors
 - [ ] `docker run` with valid `config.yaml` mounted starts successfully and logs `startup_ok`
 - [ ] `docker run` with missing `config.yaml` exits immediately with a clear error log
 - [ ] `docker run` with a misconfigured DB exits immediately with a clear error log
@@ -500,4 +500,4 @@ These map 1:1 to PRD Section 19. Sign off on each when confirmed in a real envir
 
 ---
 
-*Last updated: 2026-03-02 | Ref: DBGuard-PRD.md v2.0*
+*Last updated: 2026-03-02 | Ref: Archon-PRD.md v2.0*

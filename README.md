@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/assets/dbguard-hero.svg" alt="DBGuard your app flows into the sidecar, which encrypts, checksums, and retains backups into S3, Azure, or local storage" width="900">
+<img src="docs/assets/archon-hero.svg" alt="Archon your app flows into the sidecar, which encrypts, checksums, and retains backups into S3, Azure, or local storage" width="900">
 
 <br>
 
@@ -16,7 +16,7 @@
 [Quickstart](#quickstart) ·
 [See it work](#see-it-work) ·
 [How it works](#how-it-works) ·
-[Why DBGuard](#why-dbguard) ·
+[Why Archon](#why-archon) ·
 [API](#api-surface) ·
 [Config](#config-in-one-glance)
 
@@ -28,11 +28,11 @@
 
 Every backend needs backups. Every team re-solves it from scratch a cron job here, a shell script there, no encryption, no checksum, discovered broken the day it's needed. Then it's rebuilt for the next project, slightly differently, slightly worse.
 
-DBGuard is built **once**. It runs beside your app as a Docker container, reads one YAML file, and never touches your app's code.
+Archon is built **once**. It runs beside your app as a Docker container, reads one YAML file, and never touches your app's code.
 
 <div align="center">
 
-| Without DBGuard | With DBGuard |
+| Without Archon | With Archon |
 |---|---|
 | Hand-rolled `pg_dump` cron, no encryption | AES-256-CBC on every file, key never hits disk |
 | "Did the backup even work?" | SHA-256 sidecar, verified before every restore |
@@ -42,7 +42,7 @@ DBGuard is built **once**. It runs beside your app as a Docker container, reads 
 
 </div>
 
-> **DBGuard is the backup layer that asks nothing of your codebase.** No SDK import, no app-side hook, no vendor lock-in. If you can write a `docker-compose.yml` block, you're done.
+> **Archon is the backup layer that asks nothing of your codebase.** No SDK import, no app-side hook, no vendor lock-in. If you can write a `docker-compose.yml` block, you're done.
 
 <br>
 
@@ -55,18 +55,18 @@ DBGuard is built **once**. It runs beside your app as a Docker container, reads 
 **Local / bare Docker**
 
 ```bash
-openssl rand -hex 32        # → DBGUARD_API_KEY
+openssl rand -hex 32        # → ARCHON_API_KEY
 openssl rand -base64 32     # → ENCRYPTION_KEY
 
-docker build -t dbguard:latest .
-cp config.yaml.example dbguard.config.yaml
+docker build -t archon:latest .
+cp config.yaml.example archon.config.yaml
 
 docker run --rm \
-  -v $(pwd)/dbguard.config.yaml:/app/config.yaml \
+  -v $(pwd)/archon.config.yaml:/app/config.yaml \
   -v $(pwd)/backups:/app/backups \
   -p 8765:8765 \
   --env-file .env \
-  dbguard:latest
+  archon:latest
 ```
 
 </td>
@@ -75,10 +75,10 @@ docker run --rm \
 **docker-compose sidecar**
 
 ```yaml
-dbguard:
-  image: dbguard:latest
+archon:
+  image: archon:latest
   volumes:
-    - ./dbguard.config.yaml:/app/config.yaml
+    - ./archon.config.yaml:/app/config.yaml
     - ./backups:/app/backups
   ports:
     - "8765:8765"
@@ -100,11 +100,11 @@ Add this block to your *existing* `docker-compose.yml`. Nothing else in your pro
 
 ```bash
 curl -X POST http://localhost:8765/backup \
-  -H "X-API-Key: $DBGUARD_API_KEY" \
+  -H "X-API-Key: $ARCHON_API_KEY" \
   -d '{"database": "primary_postgres"}'
 # → 202 {"job_id": "b3f1...", "status": "queued"}
 
-curl http://localhost:8765/jobs/b3f1... -H "X-API-Key: $DBGUARD_API_KEY"
+curl http://localhost:8765/jobs/b3f1... -H "X-API-Key: $ARCHON_API_KEY"
 # → {"status": "completed", "file": "archon_primary_postgres_2026-09-21T14-00-01_daily.sql.enc"}
 ```
 
@@ -116,7 +116,7 @@ Backup requests never block the caller. A second request for the *same* database
 
 ```bash
 curl -X POST http://localhost:8765/restore \
-  -H "X-API-Key: $DBGUARD_API_KEY" \
+  -H "X-API-Key: $ARCHON_API_KEY" \
   -d '{
     "database": "primary_postgres",
     "file": "archon_primary_postgres_2026-09-21T14-00-01_daily.sql.enc",
@@ -132,11 +132,11 @@ Checksum is verified **before** decryption, decryption happens **before** any DB
 
 ```bash
 curl -X POST http://localhost:8765/granular/session \
-  -H "X-API-Key: $DBGUARD_API_KEY" \
+  -H "X-API-Key: $ARCHON_API_KEY" \
   -d '{"database": "primary_postgres", "file": "archon_primary_postgres_..._daily.sql.enc"}'
 # → {"session_id": "gs-8821"}
 
-curl http://localhost:8765/granular/session/gs-8821/table/orders/rows -H "X-API-Key: $DBGUARD_API_KEY"
+curl http://localhost:8765/granular/session/gs-8821/table/orders/rows -H "X-API-Key: $ARCHON_API_KEY"
 ```
 
 Not every restore is a full-database rollback. Open a session against a backup, browse tables, pick rows, resolve foreign-key dependencies, and apply just those rows back no full drop-and-recreate needed.
@@ -146,7 +146,7 @@ Not every restore is a full-database rollback. Open a session against a backup, 
 <summary><b>4 · Watch it happen live</b></summary>
 
 ```bash
-curl -N http://localhost:8765/logs/stream -H "X-API-Key: $DBGUARD_API_KEY"
+curl -N http://localhost:8765/logs/stream -H "X-API-Key: $ARCHON_API_KEY"
 ```
 
 Every event is structured JSON: `backup_queued` → `backup_started` → `backup_completed` (or `integrity_failed` on a bad restore). Same events also fire as HMAC-signed webhooks if you've configured one no polling required.
@@ -207,11 +207,11 @@ sequenceDiagram
 
 <br>
 
-## Why DBGuard
+## Why Archon
 
 <div align="center">
 
-| | DBGuard | Hand-rolled cron script | Managed DB backup (RDS/Atlas) |
+| | Archon | Hand-rolled cron script | Managed DB backup (RDS/Atlas) |
 |---|:-:|:-:|:-:|
 | Works with any Docker-based stack | ✅ | ✅ | ❌ vendor-locked |
 | Zero code changes to your app | ✅ | ⚠️ usually not | ✅ |
@@ -271,7 +271,7 @@ One block per database. Independent schedule, independent storage target, indepe
 **`.env`:**
 
 ```bash
-DBGUARD_API_KEY=$(openssl rand -hex 32)
+ARCHON_API_KEY=$(openssl rand -hex 32)
 ENCRYPTION_KEY=$(openssl rand -base64 32)
 DB_USER=myuser
 DB_PASSWORD=mypassword

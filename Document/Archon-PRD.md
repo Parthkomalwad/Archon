@@ -1,4 +1,4 @@
-# DBGuard – Plug-and-Play Database Backup & Restore Microservice
+# Archon – Plug-and-Play Database Backup & Restore Microservice
 **Product Requirements Document | v2.0**
 
 | Field | Detail |
@@ -14,38 +14,38 @@
 
 ## 1. Overview
 
-DBGuard is a sidecar microservice written in Python that provides automated and on-demand database backup and restore capabilities for any backend project. It runs as a separate Docker container alongside the primary application container, requiring zero code changes to the host backend.
+Archon is a sidecar microservice written in Python that provides automated and on-demand database backup and restore capabilities for any backend project. It runs as a separate Docker container alongside the primary application container, requiring zero code changes to the host backend.
 
-The motivation is simple: every project needs database backups, yet this layer is consistently skipped or re-implemented from scratch per project. DBGuard is built once and dropped into any project via a single docker-compose block.
+The motivation is simple: every project needs database backups, yet this layer is consistently skipped or re-implemented from scratch per project. Archon is built once and dropped into any project via a single docker-compose block.
 
 ---
 
 ## 2. Prerequisites & Dependencies
 
-DBGuard has zero external dependencies beyond what you already have in any Docker-based project.
+Archon has zero external dependencies beyond what you already have in any Docker-based project.
 
 ### 2.1 What You Need
 
 | Requirement | Where It Lives | Notes |
 |---|---|---|
 | Docker + Docker Compose | Your machine / server | You already have this if you run any containerised backend |
-| `dbguard.config.yaml` | Root of your project | The config file defined in Section 5. Created once per project |
-| `.env` file | Root of your project | Your existing .env file. Just add a few DBGuard-specific variables |
+| `archon.config.yaml` | Root of your project | The config file defined in Section 5. Created once per project |
+| `.env` file | Root of your project | Your existing .env file. Just add a few Archon-specific variables |
 | Backup destination | Local folder, S3 bucket, or Azure container | Local requires nothing extra. S3/Azure require credentials you already have |
-| DBGuard Docker image | Built once from source | One `docker build` command. Then referenced in docker-compose.yml |
+| Archon Docker image | Built once from source | One `docker build` command. Then referenced in docker-compose.yml |
 
-No external database for DBGuard itself, no secret manager, no Redis, no third-party service.
+No external database for Archon itself, no secret manager, no Redis, no third-party service.
 
 ### 2.2 The .env File
 
-DBGuard reads all secrets from environment variables. Add the following to your existing `.env` file:
+Archon reads all secrets from environment variables. Add the following to your existing `.env` file:
 
 ```bash
-# --- DBGuard variables (add to your existing .env) ---
+# --- Archon variables (add to your existing .env) ---
 
-# API key to authenticate REST API calls to DBGuard
+# API key to authenticate REST API calls to Archon
 # Generate with: openssl rand -hex 32
-DBGUARD_API_KEY=your-random-secret-string-here
+ARCHON_API_KEY=your-random-secret-string-here
 
 # 32-byte AES-256 encryption key for backup files
 # Generate with: openssl rand -base64 32
@@ -65,18 +65,18 @@ AZURE_STORAGE_CONN_STR=your-azure-connection-string
 
 ### 2.3 How the API Key Works
 
-`DBGUARD_API_KEY` is a plain string you generate yourself. DBGuard reads it from the environment on startup and holds it in memory. No database lookup or token store is involved.
+`ARCHON_API_KEY` is a plain string you generate yourself. Archon reads it from the environment on startup and holds it in memory. No database lookup or token store is involved.
 
 Every REST API call must include it as a request header:
 ```
 X-API-Key: your-random-secret-string-here
 ```
 
-DBGuard compares the incoming header value against the in-memory value. Returns `401` if they don't match. To rotate: update `.env` and restart the container.
+Archon compares the incoming header value against the in-memory value. Returns `401` if they don't match. To rotate: update `.env` and restart the container.
 
 ### 2.4 How the Encryption Key Works
 
-`ENCRYPTION_KEY` is a base64-encoded 32-byte random string. DBGuard reads it on startup and uses it for AES-256-CBC encryption of every backup file before it is written to storage. The key never leaves the container and is never written to disk by DBGuard.
+`ENCRYPTION_KEY` is a base64-encoded 32-byte random string. Archon reads it on startup and uses it for AES-256-CBC encryption of every backup file before it is written to storage. The key never leaves the container and is never written to disk by Archon.
 
 Generate a valid key:
 ```bash
@@ -91,10 +91,10 @@ After setup, your project root looks like this. Nothing new is introduced beyond
 
 ```
 your-project/
-├── docker-compose.yml        # add the dbguard sidecar block here
-├── dbguard.config.yaml       # dbguard config (you create this once)
-├── .env                      # your existing env file, add dbguard vars
-├── backups/                  # auto-created by dbguard for local storage
+├── docker-compose.yml        # add the archon sidecar block here
+├── archon.config.yaml       # archon config (you create this once)
+├── .env                      # your existing env file, add archon vars
+├── backups/                  # auto-created by archon for local storage
 └── ... (rest of your project)
 ```
 
@@ -137,15 +137,15 @@ The `backups/` folder is only created if you use local storage. For S3 or Azure,
 
 ### 4.1 Deployment Model
 
-DBGuard runs as a Docker sidecar container. It shares the host network with the backend container to access the database directly using credentials defined in `config.yaml`.
+Archon runs as a Docker sidecar container. It shares the host network with the backend container to access the database directly using credentials defined in `config.yaml`.
 
 Add this block to any project's `docker-compose.yml`:
 
 ```yaml
-dbguard:
-  image: dbguard:latest
+archon:
+  image: archon:latest
   volumes:
-    - ./dbguard.config.yaml:/app/config.yaml
+    - ./archon.config.yaml:/app/config.yaml
     - ./backups:/app/backups
   ports:
     - "8765:8765"
@@ -188,9 +188,9 @@ Adding a new database type in the future requires only creating a new provider c
 
 ---
 
-## 5. Configuration File (`dbguard.config.yaml`)
+## 5. Configuration File (`archon.config.yaml`)
 
-All service behaviour is driven by a single YAML config file mounted into the container at startup. DBGuard supports multiple databases in one config file. Each database entry is independent and can target a different storage backend and run on its own schedule.
+All service behaviour is driven by a single YAML config file mounted into the container at startup. Archon supports multiple databases in one config file. Each database entry is independent and can target a different storage backend and run on its own schedule.
 
 Schedules are written in plain English (frequency, time, timezone) and converted to cron internally by the `ScheduleParser`. No cron knowledge required. Raw cron is also supported as an escape hatch.
 
@@ -266,7 +266,7 @@ storage:
   s3:
     bucket: my-backups
     region: ap-south-1
-    prefix: dbguard/
+    prefix: archon/
     access_key: ${AWS_ACCESS_KEY}
     secret_key: ${AWS_SECRET_KEY}
   local:
@@ -287,7 +287,7 @@ retention:                          # global defaults  apply to all databases un
 
 api:
   port: 8765
-  api_key: ${DBGUARD_API_KEY}      # required for all endpoints
+  api_key: ${ARCHON_API_KEY}      # required for all endpoints
 ```
 
 ### Key Design Decisions
@@ -322,7 +322,7 @@ The `ScheduleParser` converts the human-readable schedule block into a cron expr
 
 ## 6. REST API Specification
 
-All endpoints require the header: `X-API-Key: <DBGUARD_API_KEY>`
+All endpoints require the header: `X-API-Key: <ARCHON_API_KEY>`
 
 | Method | Endpoint | Description |
 |---|---|---|
@@ -359,7 +359,7 @@ All endpoints require the header: `X-API-Key: <DBGUARD_API_KEY>`
   "queued_at": "2025-06-15T14:00:00Z",
   "started_at": "2025-06-15T14:00:01Z",
   "completed_at": "2025-06-15T14:00:09Z",
-  "backup_filename": "dbguard_primary_postgres_2025-06-15T14-00-01_daily.sql.enc",
+  "backup_filename": "archon_primary_postgres_2025-06-15T14-00-01_daily.sql.enc",
   "error_message": null
 }
 ```
@@ -368,7 +368,7 @@ Returns `404` if job_id is not found or has been purged (jobs purged after 24h).
 ### POST /restore – Request Body
 ```json
 {
-  "filename": "dbguard_primary_postgres_2025-06-15T02-00-00_daily.sql.enc",
+  "filename": "archon_primary_postgres_2025-06-15T02-00-00_daily.sql.enc",
   "confirm": true,
   "target_database": "staging_postgres"   // optional  defaults to database inferred from filename
 }
@@ -381,7 +381,7 @@ Returns `404` if job_id is not found or has been purged (jobs purged after 24h).
 {
   "backups": [
     {
-      "filename": "dbguard_primary_postgres_2025-06-15T14-00-01_daily.sql.enc",
+      "filename": "archon_primary_postgres_2025-06-15T14-00-01_daily.sql.enc",
       "database": "primary_postgres",
       "timestamp": "2025-06-15T14:00:01Z",
       "size_bytes": 204800,
@@ -411,7 +411,7 @@ Returns `400` with error details if the new config is invalid. Existing jobs con
 All backup files follow a deterministic naming pattern. The database name is embedded in the filename so backups from multiple databases never collide, even when stored in the same backend.
 
 ```
-dbguard_{db_name}_{timestamp}_{rotation_type}.{ext}[.enc]
+archon_{db_name}_{timestamp}_{rotation_type}.{ext}[.enc]
 ```
 
 - `.enc` suffix is appended **only when** `encryption.enabled: true`. When encryption is disabled, the file has no `.enc` suffix.
@@ -419,20 +419,20 @@ dbguard_{db_name}_{timestamp}_{rotation_type}.{ext}[.enc]
 
 Examples (encryption enabled):
 ```
-dbguard_primary_postgres_2025-06-15T02-00-00_daily.sql.enc
-dbguard_primary_postgres_2025-06-15T02-00-00_daily.sql.enc.sha256
+archon_primary_postgres_2025-06-15T02-00-00_daily.sql.enc
+archon_primary_postgres_2025-06-15T02-00-00_daily.sql.enc.sha256
 
-dbguard_analytics_mongo_2025-06-15T03-00-00_daily.archive.enc
-dbguard_analytics_mongo_2025-06-15T03-00-00_daily.archive.enc.sha256
+archon_analytics_mongo_2025-06-15T03-00-00_daily.archive.enc
+archon_analytics_mongo_2025-06-15T03-00-00_daily.archive.enc.sha256
 
-dbguard_cache_sqlite_2025-06-01T04-00-00_monthly.db.enc
-dbguard_cache_sqlite_2025-06-01T04-00-00_monthly.db.enc.sha256
+archon_cache_sqlite_2025-06-01T04-00-00_monthly.db.enc
+archon_cache_sqlite_2025-06-01T04-00-00_monthly.db.enc.sha256
 ```
 
 Examples (encryption disabled):
 ```
-dbguard_primary_postgres_2025-06-15T02-00-00_daily.sql
-dbguard_primary_postgres_2025-06-15T02-00-00_daily.sql.sha256
+archon_primary_postgres_2025-06-15T02-00-00_daily.sql
+archon_primary_postgres_2025-06-15T02-00-00_daily.sql.sha256
 ```
 
 - `db_name` maps to the `name` field in the `databases` list in `config.yaml`
@@ -523,13 +523,13 @@ When `POST /restore` is called:
 
 > **Warning:** Restore is destructive. All existing data in the target database is lost. This is why `confirm: true` is required.
 
-If restore fails midway, the database may be in a broken state. DBGuard logs the failure with full error details. No automatic rollback is performed in v1.
+If restore fails midway, the database may be in a broken state. Archon logs the failure with full error details. No automatic rollback is performed in v1.
 
 ---
 
 ## 12. Startup Behavior
 
-On container startup, DBGuard performs the following in order:
+On container startup, Archon performs the following in order:
 
 1. Read and validate `config.yaml`  exit with clear error if missing or invalid
 2. Interpolate all `${VAR_NAME}` environment variables  exit with clear error if any are missing
@@ -540,7 +540,7 @@ On container startup, DBGuard performs the following in order:
 
 All startup events are logged as structured JSON to stdout. If startup fails at any step, the container exits with a non-zero exit code and a human-readable error message.
 
-> **Note:** Use `depends_on` with healthchecks in your `docker-compose.yml` to ensure database containers are ready before DBGuard starts.
+> **Note:** Use `depends_on` with healthchecks in your `docker-compose.yml` to ensure database containers are ready before Archon starts.
 
 ---
 
@@ -574,7 +574,7 @@ All log output is written to **stdout** as newline-delimited JSON (one JSON obje
 ### Example Log Lines
 
 ```json
-{"timestamp":"2025-06-15T14:00:00Z","level":"INFO","database":null,"event":"startup_ok","message":"DBGuard started. 3 backup jobs registered.","error":null}
+{"timestamp":"2025-06-15T14:00:00Z","level":"INFO","database":null,"event":"startup_ok","message":"Archon started. 3 backup jobs registered.","error":null}
 {"timestamp":"2025-06-15T14:00:01Z","level":"INFO","database":"primary_postgres","event":"backup_started","message":"Backup job triggered (manual API)","error":null}
 {"timestamp":"2025-06-15T14:00:09Z","level":"INFO","database":"primary_postgres","event":"backup_completed","message":"Backup written to S3","error":null}
 {"timestamp":"2025-06-15T14:00:09Z","level":"INFO","database":"primary_postgres","event":"retention_run","message":"Deleted 1 expired daily backup","error":null}
@@ -586,7 +586,7 @@ All log output is written to **stdout** as newline-delimited JSON (one JSON obje
 ## 15. Project Structure
 
 ```
-dbguard/
+archon/
 ├── Dockerfile
 ├── config.yaml.example
 ├── requirements.txt
@@ -703,4 +703,4 @@ The `config.yaml` is never baked into the image. It is always mounted at runtime
 
 ---
 
-*End of PRD – DBGuard v2.0*
+*End of PRD – Archon v2.0*

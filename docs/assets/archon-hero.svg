@@ -44,7 +44,7 @@
   <rect width="1000" height="420" fill="url(#bg)"/>
   <rect width="1000" height="420" fill="url(#glow)"/>
 
-  <text x="500" y="55" text-anchor="middle" fill="#F1F5F9" font-size="34" font-weight="800" letter-spacing="1">DBGuard</text>
+  <text x="500" y="55" text-anchor="middle" fill="#F1F5F9" font-size="34" font-weight="800" letter-spacing="1">Archon</text>
   <text x="500" y="82" text-anchor="middle" fill="#818CF8" font-size="14" font-weight="500" letter-spacing="0.5">the backup sidecar that asks nothing of your app</text>
 
   <g class="drift">
@@ -55,7 +55,7 @@
 
   <g>
     <rect x="410" y="140" width="180" height="130" rx="10" class="node-active" filter="url(#softShadow)"/>
-    <text x="500" y="178" text-anchor="middle" class="label">DBGuard</text>
+    <text x="500" y="178" text-anchor="middle" class="label">Archon</text>
     <text x="500" y="198" text-anchor="middle" class="sub">sidecar container</text>
     <circle cx="460" cy="222" r="3" fill="#10B981" class="pulse"/>
     <circle cx="500" cy="222" r="3" fill="#10B981" class="pulse2"/>
