@@ -1,10 +1,10 @@
 <div align="center">
 
-<img src="docs/assets/dbguard-hero.svg" alt="DBGuard — your app flows into the sidecar, which encrypts, checksums, and retains backups into S3, Azure, or local storage" width="900">
+<img src="docs/assets/dbguard-hero.svg" alt="DBGuard your app flows into the sidecar, which encrypts, checksums, and retains backups into S3, Azure, or local storage" width="900">
 
 <br>
 
-### The Docker sidecar that gives any backend automated, encrypted, checksum-verified database backups — zero code changes, ever.
+### The Docker sidecar that gives any backend automated, encrypted, checksum-verified database backups zero code changes, ever.
 
 [![Status](https://img.shields.io/badge/status-active-6366F1?labelColor=0F1117)](#current-build-status)
 [![Python 3.11](https://img.shields.io/badge/python-3.11-6366F1?labelColor=0F1117&logo=python&logoColor=white)](requirements.txt)
@@ -26,7 +26,7 @@
 
 ## What it solves
 
-Every backend needs backups. Every team re-solves it from scratch — a cron job here, a shell script there, no encryption, no checksum, discovered broken the day it's needed. Then it's rebuilt for the next project, slightly differently, slightly worse.
+Every backend needs backups. Every team re-solves it from scratch a cron job here, a shell script there, no encryption, no checksum, discovered broken the day it's needed. Then it's rebuilt for the next project, slightly differently, slightly worse.
 
 DBGuard is built **once**. It runs beside your app as a Docker container, reads one YAML file, and never touches your app's code.
 
@@ -108,7 +108,7 @@ curl http://localhost:8765/jobs/b3f1... -H "X-API-Key: $DBGUARD_API_KEY"
 # → {"status": "completed", "file": "archon_primary_postgres_2026-09-21T14-00-01_daily.sql.enc"}
 ```
 
-Backup requests never block the caller. A second request for the *same* database while one is running queues behind it — never dropped, never runs in parallel.
+Backup requests never block the caller. A second request for the *same* database while one is running queues behind it never dropped, never runs in parallel.
 </details>
 
 <details>
@@ -124,7 +124,7 @@ curl -X POST http://localhost:8765/restore \
   }'
 ```
 
-Checksum is verified **before** decryption, decryption happens **before** any DB write. Mismatched `.sha256` sidecar → restore aborts, nothing is touched. `confirm: true` is mandatory — there is no silent restore.
+Checksum is verified **before** decryption, decryption happens **before** any DB write. Mismatched `.sha256` sidecar → restore aborts, nothing is touched. `confirm: true` is mandatory there is no silent restore.
 </details>
 
 <details>
@@ -139,7 +139,7 @@ curl -X POST http://localhost:8765/granular/session \
 curl http://localhost:8765/granular/session/gs-8821/table/orders/rows -H "X-API-Key: $DBGUARD_API_KEY"
 ```
 
-Not every restore is a full-database rollback. Open a session against a backup, browse tables, pick rows, resolve foreign-key dependencies, and apply just those rows back — no full drop-and-recreate needed.
+Not every restore is a full-database rollback. Open a session against a backup, browse tables, pick rows, resolve foreign-key dependencies, and apply just those rows back no full drop-and-recreate needed.
 </details>
 
 <details>
@@ -149,14 +149,14 @@ Not every restore is a full-database rollback. Open a session against a backup, 
 curl -N http://localhost:8765/logs/stream -H "X-API-Key: $DBGUARD_API_KEY"
 ```
 
-Every event is structured JSON: `backup_queued` → `backup_started` → `backup_completed` (or `integrity_failed` on a bad restore). Same events also fire as HMAC-signed webhooks if you've configured one — no polling required.
+Every event is structured JSON: `backup_queued` → `backup_started` → `backup_completed` (or `integrity_failed` on a bad restore). Same events also fire as HMAC-signed webhooks if you've configured one no polling required.
 </details>
 
 <br>
 
 ## How it works
 
-Every backup and every restore goes through the same fixed pipeline — no shortcuts, no reordering, ever.
+Every backup and every restore goes through the same fixed pipeline no shortcuts, no reordering, ever.
 
 ```mermaid
 sequenceDiagram
@@ -241,7 +241,7 @@ sequenceDiagram
 | `GET` `/granular/session/{id}/tables` · `/table/{t}/rows` | 🔑 | browse a backup |
 | `POST` | `/granular/session/{id}/resolve-multi` · `/restore-multi` | 🔑 | resolve FKs, apply rows |
 | `DELETE` | `/granular/session/{id}` | 🔑 | close session |
-| `GET` | `/health` | — | liveness probe |
+| `GET` | `/health` | | liveness probe |
 
 <br>
 
@@ -266,7 +266,7 @@ databases:
       weekly: 8
 ```
 
-One block per database. Independent schedule, independent storage target, independent retention — mix Postgres, Mongo, SQLite, and MySQL in the same file. Full annotated reference: [`config.yaml.example`](config.yaml.example).
+One block per database. Independent schedule, independent storage target, independent retention mix Postgres, Mongo, SQLite, and MySQL in the same file. Full annotated reference: [`config.yaml.example`](config.yaml.example).
 
 **`.env`:**
 
@@ -302,12 +302,12 @@ These never change, by design:
 - Restore pipeline: `storage.read() → verify_checksum() → decrypt() → provider.restore()`
 - Checksum verification always happens before decryption, before any DB write
 - Every backup gets a `.sha256` sidecar; deleting one deletes both
-- Config is read once at startup — `POST /reload` is the only way to pick up changes
+- Config is read once at startup `POST /reload` is the only way to pick up changes
 - DB-specific logic never leaves its provider class; cloud SDK calls never leave their storage class
 
 <br>
 
-## Theme — Obsidian Command
+## Theme Obsidian Command
 
 <div align="center">
 
@@ -332,12 +332,12 @@ pytest tests/test_encryption.py -v  # single file
 
 ## Non-goals (v1)
 
-No Slack/email notifications — webhooks already cover events · no point-in-time recovery · no multi-tenant backup granularity · no config hot-watching, reload is explicit via `POST /reload` · no persistent job history beyond in-memory (24h TTL).
+No Slack/email notifications webhooks already cover events · no point-in-time recovery · no multi-tenant backup granularity · no config hot-watching, reload is explicit via `POST /reload` · no persistent job history beyond in-memory (24h TTL).
 
 ---
 
 <div align="center">
 
-**Backups nobody has to think about — until the day everybody's glad they exist.**
+**Backups nobody has to think about until the day everybody's glad they exist.**
 
 </div>
