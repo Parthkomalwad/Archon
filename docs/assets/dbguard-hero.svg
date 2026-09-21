@@ -1,0 +1,86 @@
+<svg width="1000" height="420" viewBox="0 0 1000 420" xmlns="http://www.w3.org/2000/svg" font-family="'JetBrains Mono','Fira Code',monospace">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0F1117"/>
+      <stop offset="100%" stop-color="#141826"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#818CF8"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#6366F1" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#6366F1" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000000" flood-opacity="0.4"/>
+    </filter>
+    <style>
+      .node { fill: #161B27; stroke: #1E2740; stroke-width: 1.5; }
+      .node-active { fill: #161B27; stroke: #6366F1; stroke-width: 2; }
+      .label { fill: #F1F5F9; font-size: 15px; font-weight: 700; }
+      .sub { fill: #64748B; font-size: 11px; }
+      .flow-text { fill: #818CF8; font-size: 12px; font-weight: 600; }
+      .arrow { stroke: #6366F1; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .pulse { animation: pulse 2.4s ease-in-out infinite; }
+      .pulse2 { animation: pulse 2.4s ease-in-out infinite; animation-delay: 0.8s; }
+      .pulse3 { animation: pulse 2.4s ease-in-out infinite; animation-delay: 1.6s; }
+      @keyframes pulse {
+        0% { opacity: 0.3; r: 3; }
+        50% { opacity: 1; r: 5; }
+        100% { opacity: 0.3; r: 3; }
+      }
+      .drift { animation: drift 6s ease-in-out infinite; }
+      @keyframes drift {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-6px); }
+      }
+    </style>
+    <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#6366F1"/>
+    </marker>
+  </defs>
+
+  <rect width="1000" height="420" fill="url(#bg)"/>
+  <rect width="1000" height="420" fill="url(#glow)"/>
+
+  <text x="500" y="55" text-anchor="middle" fill="#F1F5F9" font-size="34" font-weight="800" letter-spacing="1">DBGuard</text>
+  <text x="500" y="82" text-anchor="middle" fill="#818CF8" font-size="14" font-weight="500" letter-spacing="0.5">the backup sidecar that asks nothing of your app</text>
+
+  <g class="drift">
+    <rect x="60" y="160" width="180" height="90" rx="10" class="node" filter="url(#softShadow)"/>
+    <text x="150" y="198" text-anchor="middle" class="label">Your App</text>
+    <text x="150" y="218" text-anchor="middle" class="sub">(zero code changes)</text>
+  </g>
+
+  <g>
+    <rect x="410" y="140" width="180" height="130" rx="10" class="node-active" filter="url(#softShadow)"/>
+    <text x="500" y="178" text-anchor="middle" class="label">DBGuard</text>
+    <text x="500" y="198" text-anchor="middle" class="sub">sidecar container</text>
+    <circle cx="460" cy="222" r="3" fill="#10B981" class="pulse"/>
+    <circle cx="500" cy="222" r="3" fill="#10B981" class="pulse2"/>
+    <circle cx="540" cy="222" r="3" fill="#10B981" class="pulse3"/>
+    <text x="500" y="248" text-anchor="middle" class="sub">encrypt · checksum · retain</text>
+  </g>
+
+  <g class="drift" style="animation-delay:3s">
+    <rect x="760" y="160" width="180" height="90" rx="10" class="node" filter="url(#softShadow)"/>
+    <text x="850" y="192" text-anchor="middle" class="label">S3 · Azure</text>
+    <text x="850" y="212" text-anchor="middle" class="label">Local FS</text>
+  </g>
+
+  <path d="M240,205 L405,205" class="arrow"/>
+  <path d="M590,205 L755,205" class="arrow"/>
+
+  <text x="322" y="195" text-anchor="middle" class="flow-text">backup</text>
+  <text x="672" y="195" text-anchor="middle" class="flow-text">write + sha256</text>
+
+  <g font-size="12" fill="#64748B">
+    <text x="150" y="300" text-anchor="middle">PostgreSQL · MongoDB · SQLite · MySQL</text>
+    <text x="500" y="300" text-anchor="middle" fill="#F59E0B">AES-256-CBC · SHA-256 verified</text>
+    <text x="850" y="300" text-anchor="middle">hourly · daily · weekly · monthly</text>
+  </g>
+
+  <line x1="60" y1="340" x2="940" y2="340" stroke="#1E2740" stroke-width="1"/>
+  <text x="500" y="375" text-anchor="middle" fill="#64748B" font-size="12">docker run → point config.yaml at your databases → backups happen</text>
+</svg>

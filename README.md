@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=30&pause=1000&color=6366F1&center=true&vCenter=true&width=720&lines=DBGuard+%E2%80%94+the+backup+sidecar+that+asks+nothing+of+your+app;Drop+it+in.+Point+a+config+at+it.+Forget+about+backups." alt="DBGuard typing banner" />
+<img src="docs/assets/dbguard-hero.svg" alt="DBGuard — your app flows into the sidecar, which encrypts, checksums, and retains backups into S3, Azure, or local storage" width="900">
 
 <br>
 
@@ -19,17 +19,6 @@
 [Why DBGuard](#why-dbguard) ·
 [API](#api-surface) ·
 [Config](#config-in-one-glance)
-
-<br>
-
-```
-┌───────────────┐        ┌────────────────┐        ┌───────────────┐
-│   Your App     │ ─────▶ │    DBGuard      │ ─────▶ │  S3 / Azure    │
-│   (untouched)  │        │    sidecar      │        │  / Local FS    │
-└───────────────┘        └───────┬────────┘        └───────────────┘
-                                   │
-                     encrypt → checksum → retain → notify
-```
 
 </div>
 
